@@ -6,17 +6,404 @@
 <meta name="keywords" content="html tutorial template">
 </head>
 <script>
-(async function(){
-const delay = ms => new Promise(res => setTimeout(res, ms));
-var Roblox = {}
-document.Roblox = {}
-alert(1);
-alert(Roblox);
-alert(Roblox.Hybrid);
-await delay(5000);
-alert(Roblox);
-alert(Roblox.Hybrid);
-})()
+// RobloxHybrid.min.js
+(function() {
+    var require, define;
+    (function() {
+        var modules = {};
+        var requireStack = [];
+        var inProgressModules = {};
+        var nativePrefix = function() {
+            var ua = navigator.userAgent.toLowerCase();
+            if (ua.indexOf("roblox/wininet") != -1) return "UWP";
+            if (ua.indexOf("roblox/darwin") != -1) return "iOS";
+            var isNative = ua.indexOf("hybrid") != -1;
+            if (isNative) {
+                if (ua.indexOf("ipad") != -1 || ua.indexOf("iphone") != -1 || ua.indexOf("roblox ios app") != -1) return "iOS";
+                if (ua.indexOf("android") != -1) return "Android"
+            } else {
+                var isUWP = document.cookie.indexOf("AppDeviceIdentifier=ROBLOX UWP") != -1;
+                var isEdgeBrowser = ua.indexOf("edge") != -1;
+                var isWebview = ua.indexOf("webview") != -1;
+                if (isUWP || isEdgeBrowser && isWebview) return "UWP"
+            }
+            return null
+        }();
+
+        function build(module) {
+            var factory = module.factory;
+            var localRequire = require;
+            module.exports = createBaseModule(module);
+            delete module.factory;
+            factory(localRequire, module.exports, module);
+            if (nativePrefix) {
+                var nativeModuleID = module.id + "/Native";
+                var nativeModule = modules[nativeModuleID];
+                if (!nativeModule && module.options && module.options.autoGenerateNative) nativeModule =
+                    autoGenerateNative(factory, module.options);
+                if (nativeModule) {
+                    nativeModule.factory(localRequire, module.exports, module);
+                    delete nativeModule.factory
+                }
+                var platformModuleID = module.id + "/" + nativePrefix;
+                var platformModule = modules[platformModuleID];
+                if (platformModule) {
+                    platformModule.factory(localRequire, module.exports, module);
+                    delete platformModule.factory
+                }
+            }
+            if (module.exports && module.exports.init && typeof module.exports.init === "function") module.exports.init();
+            return module.exports
+        }
+
+        function createBaseModule(module) {
+            var exports = {};
+            exports.isNative = false;
+            exports.supports = function(functionName, callback) {
+                if (callback) callback(false)
+            };
+            return exports
+        }
+
+        function autoGenerateNative(nativeModuleID, options) {
+            var generatedFactory = function(require, exports, module) {
+                var bridge = require("Bridge");
+                for (var prop in exports)(function() {
+                    var currentProp = prop;
+                    var func = exports[currentProp];
+                    if (func && typeof func === "function") {
+                        var STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
+                        var ARGUMENT_NAMES = /([^\s,]+)/g;
+                        var fnStr = func.toString().replace(STRIP_COMMENTS,
+                            "");
+                        var paramNames = fnStr.slice(fnStr.indexOf("(") + 1, fnStr.indexOf(")")).match(ARGUMENT_NAMES);
+                        if (paramNames === null) paramNames = [];
+                        exports[currentProp] = function() {
+                            var callback = null;
+                            var parameters = {};
+                            for (var i = 0; i < arguments.length; ++i) {
+                                var paramName = paramNames[i] || "" + i;
+                                var paramValue = arguments[i];
+                                if (typeof paramValue === "function") callback = paramValue;
+                                parameters[paramName] = paramValue
+                            }
+                            bridge.execute(module.id, currentProp, parameters, callback)
+                        }
+                    }
+                })()
+            };
+            delete options.autoGenerateNative;
+            return define(nativeModuleID,
+                options, generatedFactory)
+        }
+        require = function(id) {
+            if (!modules[id]) throw "module " + id + " not found";
+            else if (id in inProgressModules) {
+                var cycle = requireStack.slice(inProgressModules[id]).join("->") + "->" + id;
+                throw "Cycle in require graph: " + cycle;
+            }
+            if (modules[id].factory) try {
+                inProgressModules[id] = requireStack.length;
+                requireStack.push(id);
+                return build(modules[id])
+            } finally {
+                delete inProgressModules[id];
+                requireStack.pop()
+            }
+            return modules[id].exports
+        };
+        define = function(id, options, factory) {
+            if (modules[id]) throw "module " +
+                id + " already defined";
+            modules[id] = {
+                id: id,
+                options: options,
+                factory: factory
+            };
+            return modules[id]
+        };
+        define.remove = function(id) {
+            delete modules[id]
+        };
+        define.moduleMap = modules
+    })();
+    define("Utils", {}, function(require, exports, module) {
+        exports.loadScript = function(scriptURL, callback) {
+            var scriptLoaded = false;
+
+            function onScriptLoaded() {
+                if (!scriptLoaded) {
+                    scriptLoaded = true;
+                    callback()
+                }
+            }
+            var head = document.getElementsByTagName("head")[0];
+            var script = document.createElement("script");
+            script.type = "text/javascript";
+            script.async = true;
+            script.onreadystatechange = function() {
+                if (this.readyState == "complete") onScriptLoaded()
+            };
+            script.onload = onScriptLoaded;
+            script.src = scriptURL;
+            head.appendChild(script)
+        };
+        exports.extend =
+            function() {
+                var F = function() {};
+                return function(Child, Parent) {
+                    F.prototype = Parent.prototype;
+                    Child.prototype = new F;
+                    Child.__super__ = Parent.prototype;
+                    Child.prototype.constructor = Child
+                }
+            }();
+        exports.createUUID = function() {
+            function createPart(length) {
+                var uuidpart = "";
+                for (var i = 0; i < length; i++) {
+                    var uuidchar = parseInt(Math.random() * 256, 10).toString(16);
+                    if (uuidchar.length == 1) uuidchar = "0" + uuidchar;
+                    uuidpart += uuidchar
+                }
+                return uuidpart
+            }
+            return createPart(4) + "-" + createPart(2) + "-" + createPart(2) + "-" + createPart(2) + "-" + createPart(6)
+        }
+    });
+    define("Events", {}, function(require, exports, module) {
+        function Event(name, params) {
+            this.name = name;
+            this.params = params
+        }
+        exports.Slot = function(eventName, sticky) {
+            this.eventName = eventName;
+            this.sticky = sticky;
+            var emittedEvent = null;
+            var listeners = [];
+            this.subscribe = function(listener) {
+                listeners.push(listener);
+                if (emittedEvent) listener(emittedEvent)
+            };
+            this.unsubscribe = function(listener) {
+                var listenersCount = listeners.length;
+                for (var i = 0; i < listenersCount; i++) {
+                    var thisListener = listeners[i];
+                    if (thisListener === listener) {
+                        listeners.splice(i,
+                            1);
+                        break
+                    }
+                }
+            };
+            this.emit = function(params) {
+                var eventInstance = new Event(this.eventName, params);
+                if (this.sticky) emittedEvent = eventInstance;
+                var listenersCount = listeners.length;
+                for (var i = 0; i < listenersCount; i++) {
+                    var listener = listeners[i];
+                    if (listener(eventInstance)) break
+                }
+            }
+        }
+    });
+    define("Bridge", {}, function(require, exports, module) {
+        exports.CallbackStatus = Object.freeze({
+            SUCCESS: 0,
+            FAILURE: 1
+        });
+        exports.execute = function(moduleID, functionName, params, callback) {};
+        exports.nativeCallback = function(callbackID, status, params) {};
+        exports.emitEvent = function(moduleID, eventName, params) {
+            var targetModule = require(moduleID);
+            if (targetModule) {
+                var slot = targetModule[eventName];
+                if (slot) slot.emit(params)
+            }
+        }
+    });
+    define("Bridge/Native", {}, function(require, exports, module) {
+        var utils = require("Utils");
+        var callbacks = {};
+        exports.isNative = true;
+        exports.registerCallback = function(callback) {
+            if (callback) {
+                var callbackID = utils.createUUID();
+                callbacks[callbackID] = callback;
+                return callbackID
+            } else return null
+        };
+        exports.nativeCallback = function(callbackID, status, params) {
+            var callback = callbacks[callbackID];
+            if (callback !== undefined) {
+                delete callbacks[callbackID];
+                callback.apply(null, [status, params])
+            }
+        }
+    });
+    define("Bridge/iOS", {}, function(require, exports, module) {
+        var execXhr;
+        var requestId = 0;
+        var webViewId;
+        var utils = require("Utils");
+
+        function doNativeRequest(query) {
+            if (!webViewId) {
+                var ua = navigator.userAgent;
+                webViewId = ua.match(/Hybrid\((.*)\)/i);
+                if (webViewId) webViewId = webViewId[1];
+                else webViewId = utils.createUUID()
+            }
+            if (window.webkit && window.webkit.messageHandlers) window.webkit.messageHandlers.RobloxWKHybrid.postMessage({
+                "webViewId": webViewId,
+                "command": JSON.stringify(query),
+                "requestId": requestId
+            });
+            else {
+                if (execXhr &&
+                    execXhr.readyState != 4) execXhr = null;
+                execXhr = execXhr || new XMLHttpRequest;
+                execXhr.open("HEAD", "rbx_native_exec?" + +new Date, true);
+                execXhr.setRequestHeader("command", JSON.stringify(query));
+                execXhr.setRequestHeader("webViewId", webViewId);
+                execXhr.setRequestHeader("requestId", ++requestId);
+                execXhr.send(null)
+            }
+        }
+        exports.execute = function(moduleID, functionName, params, callback) {
+            var callbackID = exports.registerCallback(callback);
+            var query = {
+                moduleID: moduleID,
+                functionName: functionName,
+                params: params,
+                callbackID: callbackID
+            };
+            doNativeRequest(query)
+        };
+        exports.getWebViewID = function() {
+            return webViewId
+        }
+    });
+    define("Bridge/Android", {}, function(require, exports, module) {
+        exports.execute = function(moduleID, functionName, params, callback) {
+            var callbackID = exports.registerCallback(callback);
+            var query = {
+                moduleID: moduleID,
+                functionName: functionName,
+                params: params,
+                callbackID: callbackID
+            };
+            window.__globalRobloxAndroidBridge__ && window.__globalRobloxAndroidBridge__.executeRoblox(JSON.stringify(query))
+        }
+    });
+    define("Bridge/UWP", {}, function(require, exports, module) {
+        exports.execute = function(moduleID, functionName, params, callback) {
+            var callbackID = exports.registerCallback(callback);
+            var query = {
+                moduleID: moduleID,
+                functionName: functionName,
+                params: params,
+                callbackID: callbackID
+            };
+            window.external.notify(JSON.stringify(query))
+        }
+    });
+    define("Social", {
+        autoGenerateNative: true
+    }, function(require, exports, module) {
+        exports.providers = Object.freeze({
+            FACEBOOK: "facebook",
+            TWITTER: "twitter",
+            GOOGLEPLUS: "googleplus"
+        });
+        exports.presentShareDialog = function(text, link, imageURL, callback) {};
+        exports.login = function(options, successCallback, errorCallback) {};
+        exports.logout = function(callback) {}
+    });
+    define("Game", {
+        autoGenerateNative: true
+    }, function(require, exports, module) {
+        exports.LAUNCH_MODES = Object.freeze({
+            SIMPLE_GAME: "RequestGame",
+            FOLLOW_USER: "RequestFollowUser",
+            PRIVATE_SERVER: "RequestPrivateGame",
+            GAME_INSTANCE: "RequestGameJob",
+            PARTY_JOIN: "RequestPlayWithParty"
+        });
+        exports.launchGame = function(request, callback) {};
+        exports.startWithPlaceID = function(placeID, callback) {}
+    });
+    define("Chat", {
+        autoGenerateNative: true
+    }, function(require, exports, module) {
+        exports.events = require("Events");
+        exports.newMessageNotification = function(numUnreadMessages, callback) {};
+        exports.getTopBarHeight = function(callback) {};
+        exports.getKeyboardHeight = function(callback) {};
+        exports.enterConversation = function(callback) {};
+        exports.leaveConversation = function(callback) {};
+        exports.startChatConversation = function(params, callback) {};
+        exports.shareGameToChat = function(placeID, callback) {}
+    });
+    define("Input", {
+        autoGenerateNative: true
+    }, function(require, exports, module) {
+        var events = require("Events");
+        exports.onKeyboardShow = new events.Slot("onKeyboardShow");
+        exports.onKeyboardHide = new events.Slot("onKeyboardHide")
+    });
+    define("RealTime", {
+        autoGenerateNative: true
+    }, function(require, exports, module) {
+        var events = require("Events");
+        exports.isConnected = function(callback) {};
+        exports.onNotification = new events.Slot("onNotification");
+        exports.onConnectionEvent = new events.Slot("onConnectionEvent")
+    });
+    define("Navigation", {
+        autoGenerateNative: true
+    }, function(require, exports, module) {
+        exports.navigateToFeature = function(params, callback) {};
+        exports.openUserProfile = function(userId, callback) {};
+        exports.startWebChatConversation = function(userId, callback) {}
+    });
+    define("Push", {
+        autoGenerateNative: true
+    }, function(require, exports, module) {
+        exports.events = require("Events");
+        exports.pushPermissionTrigger = function(pushPermissionContext, callback) {}
+    });
+    define("Localization", {
+        autoGenerateNative: true
+    }, function(require, exports, module) {
+        exports.events = require("Events");
+        exports.languageChangeTrigger = function(newRobloxLanguageValue, callback) {}
+    });
+    define("Overlay", {
+        autoGenerateNative: true
+    }, function(require, exports, module) {
+        var events = require("Events");
+        exports.close = function(callback) {};
+        exports.setSubmitState = function(submitButtonState, callback) {};
+        exports.onSubmit = new events.Slot("onSubmit")
+    });
+    define("RobloxHybrid", {}, function(require, exports, module) {
+        exports.Utils = require("Utils");
+        exports.Events = require("Events");
+        exports.Bridge = require("Bridge");
+        exports.Game = require("Game");
+        exports.Social = require("Social");
+        exports.Chat = require("Chat");
+        exports.Input = require("Input");
+        exports.RealTime = require("RealTime");
+        exports.Navigation = require("Navigation");
+        exports.Push = require("Push");
+        exports.Overlay = require("Overlay");
+        exports.Localization = require("Localization")
+    });
+    if (!window.Roblox) window.Roblox = {};
+    window.Roblox.Hybrid = require("RobloxHybrid");
+})();
 </script>
 <body>
 GJEJKFNGBTb
