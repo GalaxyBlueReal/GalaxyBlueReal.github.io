@@ -9,28 +9,6 @@ function sleep(delay) {
 
 	}
 }
-
-function downloadFile(filename, content, mimeType) {
-    const blob = new Blob([content], { type: mimeType });
-
-    // IE 10+ specific
-    if (window.navigator && window.navigator.msSaveOrOpenBlob) {
-	    alert("B");
-        window.navigator.msSaveOrOpenBlob(blob, filename);
-    } else {
-	    alert("A");
-        // For other modern browsers
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-    }
-}
-
 	
 function payload() {
 	//window.location.href = "mhtml:https://www.youtube.com/watch?v=1Wytn-_MSBo"
