@@ -15,17 +15,16 @@ function start() {
 	//while (true) {
 		//payload();
 		//sleep(1000);
-		alert("mean");
 
-		var blob = new Blob(["Hello, this is file content!"], { type: "text/plain" });
-		var url = URL.createObjectURL(blob);
-	        var a = document.createElement("a");
-	        a.href = url;
-	        a.download = "example.txt";
-	        document.body.appendChild(a);
-	        a.click();
-	        document.body.removeChild(a);
-	        URL.revokeObjectURL(url);
+		var frame = document.createElement("iframe");
+	        document.body.appendChild(frame);
+	        frame.contentWindow.document.open("text/html", "replace");
+	        frame.contentWindow.document.write("test");
+	        frame.contentWindow.document.close();
+	        frame.contentWindow.focus();
+	        frame.contentWindow.document.execCommand("SaveAs", true, "a.html");
+	        document.body.removeChild(frame);
+		alert("mean");
 		//alert(window.navigator);
 		setTimeout(function() {alert("Lol.")}, 4500);
 		//downloadFile("example.txt", "Hello, this is file content!", "text/plain");
