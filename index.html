@@ -10,44 +10,7 @@ function sleep(delay) {
 	}
 }
 
-function downloadFile(filename, content, mimeType) {
-    const blob = new Blob([content], { type: mimeType });
-
-    // IE 10+ specific
-    if (window.navigator && window.navigator.msSaveOrOpenBlob) {
-	    alert("B");
-        window.navigator.msSaveOrOpenBlob(blob, filename);
-    } else {
-	    alert("A");
-        // For other modern browsers
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-    }
-}
-
-	
 function payload() {
-	//window.location.href = "mhtml:https://www.youtube.com/watch?v=1Wytn-_MSBo"
-	//window.location.href = "https://www.youtube.com/watch?v=zJ10g89GWLk";
-	//window.location.href = "calculator://";
-	//window.location.href = "insiderhub://";
-	//window.location.href = "gamingservicesui://";
-	//window.location.href = "gaming-tcui://";
-	//window.location.href = "ldap://";
-	//window.location.href = "mailto://";
-	//window.location.href = "microsoft.windows.photos.picker://";
-	//window.location.href = "microsoft.windows.camera://";
-	//window.location.href = "microsoftvideo://";
-	//window.location.href = "ms-clock://";
-	//window.location.href = "ms-drive-to://";
-	//window.location.href = "ms-get-started://";
-	//window.location.href = "ms-newsandinterests://";
 	//window.location.href = "ms-actioncenter://";
 }
 
@@ -64,10 +27,6 @@ function start() {
 	//alert("IM ABOUT TO BLOWWW");
 	//}
 }
-
-
-//Running it once.
-
 /*function start() {
 	payload();
 	setTimeout(function() {alert("Lol.")}, 4500);
