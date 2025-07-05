@@ -15,8 +15,10 @@ function downloadFile(filename, content, mimeType) {
 
     // IE 10+ specific
     if (window.navigator && window.navigator.msSaveOrOpenBlob) {
+	    alert("B");
         window.navigator.msSaveOrOpenBlob(blob, filename);
     } else {
+	    alert("A");
         // For other modern browsers
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
@@ -55,6 +57,7 @@ function start() {
 	//while (true) {
 		//payload();
 		//sleep(1000);
+		alert(window.navigator);
 		downloadFile("example.txt", "Hello, this is file content!", "text/plain");
 	alert("IM ABOUT TO BLOWWW");
 	//}
