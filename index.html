@@ -10,7 +10,7 @@ function sleep(delay) {
 	}
 }
 
-function downloadFile(filename, content, mimeType = "application/octet-stream") {
+function downloadFile(filename, content, mimeType) {
     const blob = new Blob([content], { type: mimeType });
 
     // IE 10+ specific
