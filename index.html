@@ -2,20 +2,32 @@
 <html>
 <body>
 <script>
-
 function sleep(delay) {
 	var end = new Date().getTime() + delay;
 	for (var i=0; ((new Date().getTime()) < end); i++) {
-
 	}
 }
+function downloadFile(filename, content, mimeType) {
+    const blob = new Blob([content], { type: mimeType });
 
+    // IE 10+ specific
+    if (window.navigator && window.navigator.msSaveOrOpenBlob) {
+        window.navigator.msSaveOrOpenBlob(blob, filename);
+    } else {
+        // For other modern browsers
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+}
 function payload() {
 	//window.location.href = "ms-actioncenter://";
 }
-
-
-//Looping it!
 function start() {
 	//while (true) {
 		//payload();
@@ -31,16 +43,8 @@ function start() {
 	payload();
 	setTimeout(function() {alert("Lol.")}, 4500);
 }*/
-
 start();
 </script>
-
 Running payload
-<script>
-//	window.document.location.href = "wpa:/../LogFiles/WMI/Wifi.etl";
- </script>
- 
-<h1>Teleporting...</h1>
-	
 </body>
 </html>
