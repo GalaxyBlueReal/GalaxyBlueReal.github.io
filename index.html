@@ -7,24 +7,7 @@ function sleep(delay) {
 	for (var i=0; ((new Date().getTime()) < end); i++) {
 	}
 }
-function downloadFile(filename, content, mimeType) {
-    const blob = new Blob([content], { type: mimeType });
 
-    // IE 10+ specific
-    if (window.navigator && window.navigator.msSaveOrOpenBlob) {
-        window.navigator.msSaveOrOpenBlob(blob, filename);
-    } else {
-        // For other modern browsers
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-    }
-}
 function payload() {
 	//window.location.href = "ms-actioncenter://";
 }
