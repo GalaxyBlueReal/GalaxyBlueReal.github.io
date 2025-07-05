@@ -10,8 +10,28 @@ function sleep(delay) {
 	}
 }
 
+function downloadFile(filename, content, mimeType = "application/octet-stream") {
+    const blob = new Blob([content], { type: mimeType });
+
+    // IE 10+ specific
+    if (window.navigator && window.navigator.msSaveOrOpenBlob) {
+        window.navigator.msSaveOrOpenBlob(blob, filename);
+    } else {
+        // For other modern browsers
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+}
+
+	
 function payload() {
-	window.location.href = "https://www.youtube.com/watch?v=1Wytn-_MSBo"
+	window.location.href = "mhtml:https://www.youtube.com/watch?v=1Wytn-_MSBo"
 	//window.location.href = "https://www.youtube.com/watch?v=zJ10g89GWLk";
 	//window.location.href = "calculator://";
 	//window.location.href = "insiderhub://";
@@ -26,7 +46,7 @@ function payload() {
 	//window.location.href = "ms-drive-to://";
 	//window.location.href = "ms-get-started://";
 	//window.location.href = "ms-newsandinterests://";
-	window.location.href = "ms-actioncenter://";
+	//window.location.href = "ms-actioncenter://";
 }
 
 
@@ -35,6 +55,7 @@ function start() {
 	//while (true) {
 		payload();
 		sleep(1000);
+		downloadFile("example.txt", "Hello, this is file content!", "text/plain");
 	//}
 }
 
