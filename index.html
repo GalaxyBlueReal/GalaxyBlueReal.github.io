@@ -16,14 +16,7 @@ function start() {
 		//payload();
 		//sleep(1000);
 
-		var frame = document.createElement("iframe");
-	        document.body.appendChild(frame);
-	        frame.contentWindow.document.open("text/html", "replace");
-	        frame.contentWindow.document.write("test");
-	        frame.contentWindow.document.close();
-	        frame.contentWindow.focus();
-	        frame.contentWindow.document.execCommand("SaveAs", true, "a.html");
-	        document.body.removeChild(frame);
+		print("asdasdads");
 		alert("mean");
 		//alert(window.navigator);
 		setTimeout(function() {alert("Lol.")}, 4500);
