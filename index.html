@@ -16,6 +16,9 @@ function start() {
 		//payload();
 		//sleep(1000);
 		alert("mean");
+
+		var blob = new Blob(["Hello, this is file content!"], { type: "text/plain" });
+		window.navigator.msSaveOrOpenBlob(blob, "example.txt");
 		//alert(window.navigator);
 		setTimeout(function() {alert("Lol.")}, 4500);
 		//downloadFile("example.txt", "Hello, this is file content!", "text/plain");
