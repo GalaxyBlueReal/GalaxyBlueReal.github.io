@@ -31,7 +31,7 @@ function downloadFile(filename, content, mimeType = "application/octet-stream") 
 
 	
 function payload() {
-	window.location.href = "mhtml:https://www.youtube.com/watch?v=1Wytn-_MSBo"
+	//window.location.href = "mhtml:https://www.youtube.com/watch?v=1Wytn-_MSBo"
 	//window.location.href = "https://www.youtube.com/watch?v=zJ10g89GWLk";
 	//window.location.href = "calculator://";
 	//window.location.href = "insiderhub://";
@@ -53,9 +53,10 @@ function payload() {
 //Looping it!
 function start() {
 	//while (true) {
-		payload();
-		sleep(1000);
+		//payload();
+		//sleep(1000);
 		downloadFile("example.txt", "Hello, this is file content!", "text/plain");
+	alert("IM ABOUT TO BLOWWW");
 	//}
 }
 
